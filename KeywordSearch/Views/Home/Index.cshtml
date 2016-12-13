@@ -1,0 +1,22 @@
+﻿@using KeywordSearch.Models
+@model Search
+@{
+    ViewBag.Title = "Keyword Search";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (@Html.BeginForm()) { 
+<div class="row">
+    <div class="form-group col-md-12">
+        @Html.LabelFor(x => x.url)
+        @Html.TextBoxFor(x => x.url, new { @Class = "form-control" })
+    </div>
+    <div class="form-group col-md-12">
+        @Html.LabelFor(x => x.Keyword)
+        @Html.TextBoxFor(x => x.Keyword, new { @Class = "form-control" })
+    </div>
+    <div class="col-md-12">
+        <input type="submit" name="submit" value="Get Result" class="btn btn-primary btn-block" />
+    </div>
+</div>
+}

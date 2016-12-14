@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
+using System.Text;
 
 namespace KeywordSearch.Controllers
 {
@@ -25,65 +26,87 @@ namespace KeywordSearch.Controllers
         [HttpPost]
         public ActionResult Index(Search search)
         {
-            UrlCheck(search);
+            string pre_url = PrepareURL(search);
+            search.Page = 0;
+            bool isEndPage = false;
+            string regex = @"(<cite>)(.*?)(<\/cite>)";
+            //List<string> resultList = new List<string>();
+            List<Result> resultsList = new List<Result>();
 
-            search.url += "/search";
-            WebClient wc = new WebClient();
-            NameValueCollection stringQuery = new NameValueCollection();
-            stringQuery.Add("q", search.Keyword);
-            wc.QueryString.Add(stringQuery);
-            search.Result = wc.DownloadString(search.url).Replace("<!doctype html>", "<?xml version=\"1.0\" encoding=\"utf - 16\"?>");
-
-            //search.Result = "<?xml version=\"1.0\" encoding=\"utf - 16\"?><html xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><head></head><body class=\"s\"></body></html>";
-
-            //集齐所有排除项一并删除
-            string regex_style = @"(<style>.*?<\/style>)";
-            string regex_script = @"(<script\s?.*?>.*?<\/script>)";
-            string regex_noscript = @"(<noscript>.*?<\/noscript>)";
-            CleanResult(search, regex_style);
-            CleanResult(search, regex_script);
-            CleanResult(search, regex_noscript);
-            var s = search.Result;
-
-            Serializer serializer = new Serializer();
-            Html html = serializer.GetDeserializedObj<Html>(search.Result);
-            return View("Result", html);
-            //return RedirectToAction("Result", search);
+            using (WebClient wc = new WebClient())
+            {
+                wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+                while (!isEndPage)
+                {
+                    search.url = string.Format(pre_url, search.Page.ToString());
+                    search.Result = wc.DownloadString(search.url);
+                    //resultList = GetResult(search, regex);
+                    resultsList = GetResultList(search, regex);
+                    if (resultsList.Count != 0 && search.Page<10)
+                    {
+                        //search.ResultList.AddRange(resultList);
+                        search.Results.AddRange(resultsList);
+                        search.Page += 10;
+                    }
+                    else
+                    {
+                        isEndPage = true;
+                    }
+                }
+            }
+            return View("Result", search);
         }
-        private void CleanResult(Search search, string regex)
+        [HttpGet]
+        public ActionResult Result(Search search)
+        {
+            ViewBag.resultIndex = Enumerable.Range(0, search.Results.Count)
+                .Where(i => search.Results[i].URL.Contains(search.Keyword))
+                .ToList();
+            
+            return View(search);
+        }
+
+        private string PrepareURL(Search search)
+        {
+            if (search.url.Contains("google.com.au"))
+            {
+                string pre_url = CONSTVALUE.GOOGLE_URL;
+                search.Keyword = search.Keyword.Replace(" ", "+");
+                return string.Format(pre_url, search.Keyword, "{0}");
+            }else
+            {
+                return "";
+            }
+        }
+
+        private List<string> GetResult(Search search, string regex)
         {
             List<string> resultList = new List<string>();
+            StringBuilder sb = new StringBuilder();
             Regex reg = new Regex(regex, RegexOptions.IgnoreCase);
             Match match = reg.Match(search.Result);
             while (match.Success)
             {
-                resultList.Add(match.Groups[0].Value);
+                string temp = match.Groups[2].Value.Replace("<b>", "").Replace("</b>", "");
+                resultList.Add(temp);
                 match = match.NextMatch();
             }
-
-            foreach (string str in resultList)
+            return resultList;
+        }
+        private List<Result> GetResultList(Search search, string regex)
+        {
+            search.TempResults = new List<Result>();
+            StringBuilder sb = new StringBuilder();
+            Regex reg = new Regex(regex, RegexOptions.IgnoreCase);
+            Match match = reg.Match(search.Result);
+            while (match.Success)
             {
-                search.Result = search.Result.Replace(str, "");
+                string temp = match.Groups[2].Value.Replace("<b>", "").Replace("</b>", "");
+                int currentPage = search.Page / 10 + 1;
+                search.TempResults.Add(new Result() { Page = currentPage, URL = temp });
+                match = match.NextMatch();
             }
-        }
-        [HttpGet]
-        public ActionResult Result(Html html)
-        {
-
-            //Serializer serializer = new Serializer();
-            //Html html = serializer.GetDeserializedObj<Html>(search.Result);
-
-            return View(html);
-        }
-
-        /// <summary>
-        /// Check url integrity
-        /// </summary>
-        /// <param name="search"></param>
-        /// <returns></returns>
-        private string UrlCheck(Search search)
-        {
-            return "";
+            return search.TempResults;
         }
     }
 }

@@ -5,9 +5,9 @@ using System.Web;
 
 namespace KeywordSearch.Models
 {
-    public struct KeyValue
+    public class Result
     {
-        public string Key { get; set; }
-        public string Value { get; set; }
+        public int Page { get; set; }
+        public string URL { get; set; }
     }
 }

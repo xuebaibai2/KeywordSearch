@@ -1,10 +1,28 @@
-﻿@using KeywordSearch.Models
-@model Html
+﻿@model KeywordSearch.Models.Search
+
 @{
     ViewBag.Title = "Result";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    List<string> resultList = Model.ResultList;
 }
-<h3>Result</h3>
-<hr/>
-@Html.TextAreaFor(x=>x.Body)
 
+<h2>Result</h2>
+
+@{ 
+    foreach ( string result in resultList)
+    {
+        <span>@result</span>
+        <br />
+    }
+    foreach (int index in ViewBag.resultIndex)
+    {
+        <span>
+            Page: @Model.Results[index].Page &nbsp;&nbsp;
+        </span>
+        
+        <span>
+            Index: @index
+        </span>
+        <br />
+    }
+}

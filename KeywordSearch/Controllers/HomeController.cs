@@ -65,17 +65,23 @@ namespace KeywordSearch.Controllers
             string pre_url = PrepareURL(search);
             search.SearchAmount = 20;
             search.Page = 0;
-            bool isEndPage = false;
+            bool isSyncCompleted = false;
             string regex = CONSTVALUE.GOOGLE_REGEX; //Will Change based on User-Agent Header
             int searchPage = GetPageLoopBySearchAmount(search.SearchAmount); //Page start from 0
-
+            List<Task<Html>> tempHtmlList = new List<Task<Html>>();
             for (int i = 0; i < searchPage; i++)
             {
                 int urlPage = GetSearchPageByPageLoop(i);
                 search.url = string.Format(pre_url, urlPage);
-                search.Results.AddRange(GetResultlistAsync(GetHTMLComtent(search.url).Result, urlPage, regex).Result);
+                tempHtmlList.Add(GetHTMLComtent(search.url,i));
+                //search.Results.AddRange(GetResultlistAsync(GetHTMLComtent(search.url).Result, regex).Result);
             }
 
+            while (!isSyncCompleted)
+            {
+                //Do something to load search.Results
+                //when all task completed set isSyncCompleted to true
+            }
 
             TempData["ResultList"] = search.Results;
 
@@ -181,7 +187,7 @@ namespace KeywordSearch.Controllers
             }
         }
 
-        private async Task<List<Result>> GetResultlistAsync(Html html, string regex)
+        private List<Result> GetResultlistAsync(Html html, string regex)
         {
             List<Result> resultList = new List<Models.Result>();
             StringBuilder sb = new StringBuilder();

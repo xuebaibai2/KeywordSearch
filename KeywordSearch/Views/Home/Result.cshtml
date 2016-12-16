@@ -1,20 +1,15 @@
-﻿@model KeywordSearch.Models.Search
+﻿@using KeywordSearch.Models
+@model Search
 
 @{
     ViewBag.Title = "Result";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    List<string> resultList = Model.ResultList;
 }
 
 <h2>Result</h2>
 
-@{ 
-    foreach ( string result in resultList)
-    {
-        <span>@result</span>
-        <br />
-    }
-    foreach (int index in ViewBag.resultIndex)
+@{  
+    foreach (int index in ViewBag.resultIndex as List<int>)
     {
         <span>
             Page: @Model.Results[index].Page &nbsp;&nbsp;

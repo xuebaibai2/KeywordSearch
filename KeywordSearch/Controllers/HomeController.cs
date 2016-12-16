@@ -9,6 +9,7 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace KeywordSearch.Controllers
 {
@@ -18,7 +19,7 @@ namespace KeywordSearch.Controllers
         public ActionResult Index()
         {
             Search search = new Search();
-            search.Keyword = "online title search";
+            search.SearchWord = "online title search";
             search.url = "https://www.google.com.au";
             return View(search);
         }
@@ -29,71 +30,140 @@ namespace KeywordSearch.Controllers
             string pre_url = PrepareURL(search);
             search.Page = 0;
             bool isEndPage = false;
-            string regex = @"(<cite>)(.*?)(<\/cite>)";
-            //List<string> resultList = new List<string>();
-            List<Result> resultsList = new List<Result>();
+            string regex = @"(<cite>)(.*?)(<\/cite>)"; //Will Change based on User-Agent Header
 
             using (WebClient wc = new WebClient())
             {
-                wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+                wc.Headers.Add("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+                wc.Headers.Add("Content-Type", "text/plain;charset=UTF-8");
+                //wc.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
                 while (!isEndPage)
                 {
                     search.url = string.Format(pre_url, search.Page.ToString());
                     search.Result = wc.DownloadString(search.url);
-                    //resultList = GetResult(search, regex);
-                    resultsList = GetResultList(search, regex);
-                    if (resultsList.Count != 0 && search.Page<10)
+                    GetResultList(search, regex);
+                    if (search.TempResults.Count != 0 && search.Page<=10)
                     {
-                        //search.ResultList.AddRange(resultList);
-                        search.Results.AddRange(resultsList);
+                        search.Results.AddRange(search.TempResults);
                         search.Page += 10;
                     }
                     else
                     {
                         isEndPage = true;
+                        search.Result = "";
+                        TempData["ResultList"] = search.Results;
                     }
                 }
             }
-            return View("Result", search);
+            
+            return RedirectToAction("Result", search);
         }
         [HttpGet]
         public ActionResult Result(Search search)
         {
-            ViewBag.resultIndex = Enumerable.Range(0, search.Results.Count)
-                .Where(i => search.Results[i].URL.Contains(search.Keyword))
+            search.Results = TempData["ResultList"] as List<Result>;
+            ViewBag.resultIndex = Enumerable.Range(1, search.Results.Count)
+                .Where(i => search.Results[i-1].URL.Contains(search.Keyword))
                 .ToList();
-            
             return View(search);
         }
+
+        //public Result FindResult(Search search)
+        //{
+        //    Result result = new Result();
+        //    string pre_url = PrepareURL(search);
+        //    search.Page = 0;
+        //    bool isEndPage = false;
+        //    string regex = CONSTVALUE.GOOGLE_REGEX; //Will Change based on User-Agent Header
+        //    int searchPage = GetPageLoopBySearchAmount(search.SearchAmount); //Page start from 0
+
+        //    List<Task<string>> results = new List<Task<string>>();
+
+        //    for (int i = 0; i < searchPage; i++)
+        //    {
+        //        search.url = string.Format(pre_url, GetSearchPageByPageLoop(i));
+        //        results.Add(GetHTMLComtent(search.url));
+        //        GetResultList(search, regex);
+        //    }
+
+        //    using (WebClient wc = new WebClient())
+        //    {
+        //        wc.Headers.Add("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+        //        wc.Headers.Add("Content-Type", "text/plain;charset=UTF-8");
+        //        //wc.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
+        //        while (!isEndPage)
+        //        {
+        //            search.url = string.Format(pre_url, search.Page.ToString());
+        //            search.Result = wc.DownloadString(search.url);
+        //            GetResultList(search, regex);
+        //            if (search.TempResults.Count != 0 && search.Page <= 10)
+        //            {
+        //                search.Results.AddRange(search.TempResults);
+        //                search.Page += 10;
+        //            }
+        //            else
+        //            {
+        //                isEndPage = true;
+        //                search.Result = "";
+        //                TempData["ResultList"] = search.Results;
+        //            }
+        //        }
+        //    }
+
+        //    return result;
+        //}
+
+        //private int GetPageLoopBySearchAmount(int searchAmount)
+        //{
+        //    return searchAmount / 10 - 1;
+        //}
+
+        //private int GetSearchPageByPageLoop(int searchPage)
+        //{
+        //    return searchPage * 10;
+        //}
+
+        //private async Task<string> GetHTMLComtent(string url)
+        //{
+        //    using (WebClient wc = new WebClient())
+        //    {
+        //        wc.Headers.Add("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+        //        wc.Headers.Add("Content-Type", "text/plain;charset=UTF-8");
+
+        //        return await wc.DownloadStringTaskAsync(new Uri(url));
+        //    } 
+        //}
 
         private string PrepareURL(Search search)
         {
             if (search.url.Contains("google.com.au"))
             {
                 string pre_url = CONSTVALUE.GOOGLE_URL;
-                search.Keyword = search.Keyword.Replace(" ", "+");
-                return string.Format(pre_url, search.Keyword, "{0}");
+                search.SearchWord = search.SearchWord.Replace(" ", "+");
+                search.Keyword = "www.infotrack.com.au";
+                return string.Format(pre_url, search.SearchWord, "{0}");
             }else
             {
                 return "";
             }
         }
 
-        private List<string> GetResult(Search search, string regex)
-        {
-            List<string> resultList = new List<string>();
-            StringBuilder sb = new StringBuilder();
-            Regex reg = new Regex(regex, RegexOptions.IgnoreCase);
-            Match match = reg.Match(search.Result);
-            while (match.Success)
-            {
-                string temp = match.Groups[2].Value.Replace("<b>", "").Replace("</b>", "");
-                resultList.Add(temp);
-                match = match.NextMatch();
-            }
-            return resultList;
-        }
-        private List<Result> GetResultList(Search search, string regex)
+        //private List<string> GetResult(Search search, string regex)
+        //{
+        //    List<string> resultList = new List<string>();
+        //    StringBuilder sb = new StringBuilder();
+        //    Regex reg = new Regex(regex, RegexOptions.IgnoreCase);
+        //    Match match = reg.Match(search.Result);
+        //    while (match.Success)
+        //    {
+        //        string temp = match.Groups[2].Value.Replace("<b>", "").Replace("</b>", "");
+        //        resultList.Add(temp);
+        //        match = match.NextMatch();
+        //    }
+        //    return resultList;
+        //}
+
+        private void GetResultList(Search search, string regex)
         {
             search.TempResults = new List<Result>();
             StringBuilder sb = new StringBuilder();
@@ -106,7 +176,21 @@ namespace KeywordSearch.Controllers
                 search.TempResults.Add(new Result() { Page = currentPage, URL = temp });
                 match = match.NextMatch();
             }
-            return search.TempResults;
         }
+
+        //private List<Result> GetResultListAsync(Search search, string regex)
+        //{
+        //    search.TempResults = new List<Result>();
+        //    StringBuilder sb = new StringBuilder();
+        //    Regex reg = new Regex(regex, RegexOptions.IgnoreCase);
+        //    Match match = reg.Match(search.Result);
+        //    while (match.Success)
+        //    {
+        //        string temp = match.Groups[2].Value.Replace("<b>", "").Replace("</b>", "");
+        //        int currentPage = search.Page / 10 + 1;
+        //        search.TempResults.Add(new Result() { Page = currentPage, URL = temp });
+        //        match = match.NextMatch();
+        //    }
+        //}
     }
 }

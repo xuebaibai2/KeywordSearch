@@ -12,11 +12,13 @@
     foreach (int index in ViewBag.resultIndex as List<int>)
     {
         <span>
-            Page: @Model.Results[index].Page &nbsp;&nbsp;
+            Page: @(Model.Results[index].Page +1) &nbsp;&nbsp;
         </span>
-        
         <span>
-            Index: @index
+            Current Page Index: @Model.Results[index].Index &nbsp;&nbsp;
+        </span>
+        <span>
+            Total Rank: @(index+1) &nbsp;&nbsp;
         </span>
         <br />
     }

@@ -9,5 +9,6 @@ namespace KeywordSearch.Models
     {
         public int Page { get; set; }
         public string URL { get; set; }
+        public int Index { get; set; }
     }
 }

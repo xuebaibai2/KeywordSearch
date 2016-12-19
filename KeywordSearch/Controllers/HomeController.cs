@@ -54,35 +54,6 @@ namespace KeywordSearch.Controllers
             return RedirectToAction("Result", search);
         }
 
-        //[HttpGet]
-        //public async Task<ActionResult> AjaxCall(Search search)
-        //{
-        //    string pre_url = PrepareURL(search);
-        //    search.SearchAmount = 30;
-        //    search.Page = 0;
-        //    string regex = CONSTVALUE.GOOGLE_REGEX; //Will Change based on User-Agent Header
-        //    int searchPage = GetPageLoopBySearchAmount(search.SearchAmount); //Page start from 0
-        //    List<Task<Search>> tempSearchListTask = new List<Task<Search>>();
-            
-        //    for (int i = 0; i <= searchPage; i++)
-        //    {
-        //        int urlPage = GetSearchPageByPageLoop(i);
-        //        search.url = string.Format(pre_url, urlPage);
-        //        tempSearchListTask.Add(GetSearchComtent(search.url, i));
-        //    }
-
-        //    foreach (Task<Search> sr in tempSearchListTask)
-        //    {
-        //        Search tempSearch = await sr;
-        //        GetResultList(tempSearch, regex);
-        //        search.Results.AddRange(tempSearch.TempResults);
-        //    }
-
-        //    TempData["ResultList"] = search.Results;
-
-        //    return RedirectToAction("Result", search);
-        //}
-
         [HttpGet]
         public ActionResult Result(Search search)
         {
@@ -119,11 +90,11 @@ namespace KeywordSearch.Controllers
         {
             if (search.url.Contains("google.com.au"))
             {
-                string pre_url = CONSTVALUE.GOOGLE_URL;
+                search.url = CONSTVALUE.GOOGLE_URL;
                 search.SearchWord = search.SearchWord.Replace(" ", "+");
                 //search.Keyword = "www.infotrack.com.au";
                 search.Keyword = "thankq";
-                return string.Format(pre_url, search.SearchWord, "{0}");
+                return string.Format(search.url, search.SearchWord, "{0}");
             }else
             {
                 return "";
@@ -141,7 +112,6 @@ namespace KeywordSearch.Controllers
             {
                 currentPageIndex++;
                 string temp = match.Groups[2].Value.Replace("<b>", "").Replace("</b>", "");
-                //int currentPage = search.Page / 10 + 1;
                 search.TempResults.Add(new Result() { Page = search.Page, URL = temp, Index = currentPageIndex });
                 match = match.NextMatch();
             }

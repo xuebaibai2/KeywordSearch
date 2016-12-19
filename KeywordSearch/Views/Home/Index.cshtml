@@ -18,5 +18,22 @@
     <div class="col-md-12">
         <input type="submit" name="submit" value="Get Result" class="btn btn-primary btn-block" />
     </div>
+    @*@Ajax.ActionLink("Submit Ajax", "AjaxCall", Model, new AjaxOptions
+    {
+        UpdateTargetId = "divResult",
+        InsertionMode = InsertionMode.Replace,
+        HttpMethod = "GET",
+        OnSuccess = "fnSuccess",
+        Confirm = "Do you want to get all student info ?????"
+    })
+        <script type="text/javascript">
+
+        function fnSuccess() {
+            alert("Booo..Success..");
+        }
+        </script>
+        <div id="divResult">
+
+        </div>*@ 
 </div>
 }

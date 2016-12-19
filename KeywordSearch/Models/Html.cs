@@ -5,10 +5,9 @@ using System.Web;
 
 namespace KeywordSearch.Models
 {
-    public class Result
+    public class Html
     {
         public int Page { get; set; }
-        public string URL { get; set; }
-        public int Index { get; set; }
+        public string Content { get; set; }
     }
 }

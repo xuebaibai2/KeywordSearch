@@ -6,20 +6,27 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Result</h2>
-
 @{  
-    foreach (int index in ViewBag.resultIndex as List<int>)
-    {
-        <span>
-            Page: @(Model.Results[index].Page +1) &nbsp;&nbsp;
-        </span>
-        <span>
-            Current Page Index: @Model.Results[index].Index &nbsp;&nbsp;
-        </span>
-        <span>
-            Total Rank: @(index+1) &nbsp;&nbsp;
-        </span>
-        <br />
-    }
+    <h3>Found @ViewBag.resultIndex.Count matching result</h3>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Page Number</th>
+                <th>Index in Current Page</th>
+                <th>Index in First 100 Record</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (int index in ViewBag.resultIndex as List<int>)
+            {
+                <tr>
+                    <td>@(Model.Results[index].Page + 1)</td>
+                    <td>@Model.Results[index].Index</td>
+                    <td>@(index + 1)</td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
 }

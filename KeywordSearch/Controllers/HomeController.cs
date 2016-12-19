@@ -19,8 +19,8 @@ namespace KeywordSearch.Controllers
         public ActionResult Index()
         {
             Search search = new Search();
-            //search.SearchWord = "online title search";
-            search.SearchWord = "thankq";
+            search.SearchWord = "online title search";
+            //search.SearchWord = "thankq";
             search.url = "https://www.google.com.au";
             return View(search);
         }
@@ -29,15 +29,14 @@ namespace KeywordSearch.Controllers
         public async Task<ActionResult> Index(Search search)
         {
             string pre_url = PrepareURL(search);
-            search.SearchAmount = 100;
-            search.Page = 0;
+            search.SearchAmount = CONSTVALUE.SEARCHAMOUNT;
             string regex = CONSTVALUE.GOOGLE_REGEX; //Will Change based on User-Agent Header
             int searchPage = GetPageLoopBySearchAmount(search.SearchAmount); //Page start from 0
             List<Task<Search>> tempSearchListTask = new List<Task<Search>>();
 
             for (int i = 0; i <= searchPage; i++)
             {
-                int urlPage = GetSearchPageByPageLoop(i);
+                int urlPage = GetSearchPageByCurrentPage(i);
                 search.url = string.Format(pre_url, urlPage);
                 tempSearchListTask.Add(GetSearchComtent(search.url, i));
             }
@@ -64,12 +63,13 @@ namespace KeywordSearch.Controllers
             return View(search);
         }
 
+        #region Private Methods
         private int GetPageLoopBySearchAmount(int searchAmount)
         {
             return searchAmount / 10 - 1;
         }
 
-        private int GetSearchPageByPageLoop(int searchPage)
+        private int GetSearchPageByCurrentPage(int searchPage)
         {
             return searchPage * 10;
         }
@@ -79,7 +79,7 @@ namespace KeywordSearch.Controllers
             using (WebClient wc = new WebClient())
             {
                 wc.Headers.Add("User-Agent", CONSTVALUE.USER_AGENT);
-                wc.Headers.Add("Content-Type", "text/plain;charset=UTF-8");
+                wc.Headers.Add("Content-Type", CONSTVALUE.CONTENT_TYPE);
 
                 string content = await wc.DownloadStringTaskAsync(new Uri(url));
                 return new Search(){Result = content, Page = page};
@@ -92,8 +92,8 @@ namespace KeywordSearch.Controllers
             {
                 search.url = CONSTVALUE.GOOGLE_URL;
                 search.SearchWord = search.SearchWord.Replace(" ", "+");
-                //search.Keyword = "www.infotrack.com.au";
-                search.Keyword = "thankq";
+                search.Keyword = "www.infotrack.com.au";
+                //search.Keyword = "thankq";
                 return string.Format(search.url, search.SearchWord, "{0}");
             }else
             {
@@ -116,5 +116,6 @@ namespace KeywordSearch.Controllers
                 match = match.NextMatch();
             }
         }
+        #endregion
     }
 }

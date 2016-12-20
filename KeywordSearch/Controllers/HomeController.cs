@@ -2,11 +2,9 @@
 using KeywordSearch.Utility;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,9 +17,8 @@ namespace KeywordSearch.Controllers
         public ActionResult Index()
         {
             Search search = new Search();
-            search.SearchWord = "online title search";
-            //search.SearchWord = "thankq";
-            search.url = "https://www.google.com.au";
+            search.Keyword = "online title search";
+            search.SearchWord = "www.infotrack.com.au";
             return View(search);
         }
 
@@ -29,22 +26,21 @@ namespace KeywordSearch.Controllers
         public async Task<ActionResult> Index(Search search)
         {
             string pre_url = PrepareURL(search);
-            search.SearchAmount = CONSTVALUE.SEARCHAMOUNT;
-            string regex = CONSTVALUE.GOOGLE_REGEX; //Will Change based on User-Agent Header
-            int searchPage = GetPageLoopBySearchAmount(search.SearchAmount); //Page start from 0
+            int searchPage = GetPageLoopBySearchAmount(CONSTVALUE.SEARCHAMOUNT); 
             List<Task<Search>> tempSearchListTask = new List<Task<Search>>();
 
+            //Load html content to tempSearchList
             for (int i = 0; i <= searchPage; i++)
             {
-                int urlPage = GetSearchPageByCurrentPage(i);
-                search.url = string.Format(pre_url, urlPage);
+                search.url = string.Format(pre_url, GetSearchPageByCurrentPage(i));
                 tempSearchListTask.Add(GetSearchComtent(search.url, i));
             }
 
+            //Use regular expression to find matching result
             foreach (Task<Search> sr in tempSearchListTask)
             {
                 Search tempSearch = await sr;
-                GetResultList(tempSearch, regex);
+                GetResultList(tempSearch, CONSTVALUE.GOOGLE_REGEX);
                 search.Results.AddRange(tempSearch.TempResults);
             }
 
@@ -57,8 +53,8 @@ namespace KeywordSearch.Controllers
         public ActionResult Result(Search search)
         {
             search.Results = TempData["ResultList"] as List<Result>;
-            ViewBag.resultIndex = Enumerable.Range(0, search.Results.Count-1)
-                .Where(i => search.Results[i].URL.ToUpper().Contains(search.Keyword.ToUpper()))
+            ViewBag.resultIndex = Enumerable.Range(0, search.Results.Count - 1)
+                .Where(i => search.Results[i].URL.ToUpper().Contains(search.SearchWord.ToUpper()))
                 .ToList();
             return View(search);
         }
@@ -80,32 +76,22 @@ namespace KeywordSearch.Controllers
             {
                 wc.Headers.Add("User-Agent", CONSTVALUE.USER_AGENT);
                 wc.Headers.Add("Content-Type", CONSTVALUE.CONTENT_TYPE);
-
                 string content = await wc.DownloadStringTaskAsync(new Uri(url));
-                return new Search(){Result = content, Page = page};
+                return new Search() { Result = content, Page = page };
             }
         }
 
         private string PrepareURL(Search search)
         {
-            if (search.url.Contains("google.com.au"))
-            {
-                search.url = CONSTVALUE.GOOGLE_URL;
-                search.SearchWord = search.SearchWord.Replace(" ", "+");
-                search.Keyword = "www.infotrack.com.au";
-                //search.Keyword = "thankq";
-                return string.Format(search.url, search.SearchWord, "{0}");
-            }else
-            {
-                return "";
-            }
+            search.url = CONSTVALUE.GOOGLE_URL;
+            search.Keyword = search.Keyword.Replace(" ", "+");
+            return string.Format(search.url, search.Keyword, "{0}");
         }
 
         private void GetResultList(Search search, string regex)
         {
             search.TempResults = new List<Result>();
             int currentPageIndex = 0;
-            StringBuilder sb = new StringBuilder();
             Regex reg = new Regex(regex, RegexOptions.IgnoreCase);
             Match match = reg.Match(search.Result);
             while (match.Success)

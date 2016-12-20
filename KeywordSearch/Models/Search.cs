@@ -11,11 +11,10 @@ namespace KeywordSearch.Models
         {
             ResultList = new List<string>();
             TempResults = new List<Result>();
-            Results = new List<Models.Result>();
+            Results = new List<Result>();
         }
         public string SearchWord { get; set; }
         public string Keyword { get; set; }
-        public int SearchAmount { get; set; }
         public string url { get; set; }
         public string Result { get; set; }
         public List<string> ResultList { get; set; }

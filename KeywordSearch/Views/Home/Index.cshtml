@@ -4,36 +4,24 @@
     ViewBag.Title = "Keyword Search";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-@using (@Html.BeginForm()) { 
+<h3 class="text-center">Key word Search</h3>
+<br />
 <div class="row">
-    <div class="form-group col-md-12">
-        @Html.LabelFor(x => x.url)
-        @Html.TextBoxFor(x => x.url, new { @Class = "form-control" })
-    </div>
-    <div class="form-group col-md-12">
-        @Html.LabelFor(x => x.SearchWord)
-        @Html.TextBoxFor(x => x.SearchWord, new { @Class = "form-control" })
-    </div>
-    <div class="col-md-12">
-        <input type="submit" name="submit" value="Get Result" class="btn btn-primary btn-block" />
-    </div>
-    @*@Ajax.ActionLink("Submit Ajax", "AjaxCall", Model, new AjaxOptions
-    {
-        UpdateTargetId = "divResult",
-        InsertionMode = InsertionMode.Replace,
-        HttpMethod = "GET",
-        OnSuccess = "fnSuccess",
-        Confirm = "Do you want to get all student info ?????"
-    })
-        <script type="text/javascript">
-
-        function fnSuccess() {
-            alert("Booo..Success..");
+    <div class="col-md-9 col-md-offset-3">
+        @using (@Html.BeginForm())
+        {
+            <div class="form-group col-md-12">
+                @Html.LabelFor(x => x.SearchWord, "URL")
+                @Html.TextBoxFor(x => x.SearchWord, new { @Class = "form-control" })
+            </div>
+            <div class="form-group col-md-12">
+                @Html.LabelFor(x => x.SearchWord, "Key Words")
+                @Html.TextBoxFor(x => x.Keyword, new { @Class = "form-control" })
+            </div>
+            <div class="col-md-12">
+                <input type="submit" name="submit" value="Get Result" class="btn btn-primary btn-block" />
+            </div>
         }
-        </script>
-        <div id="divResult">
-
-        </div>*@ 
+    </div>
 </div>
-}
+
